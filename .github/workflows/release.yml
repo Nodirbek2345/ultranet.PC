@@ -1,12 +1,18 @@
 name: Build and Release Windows App
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       version:
         description: 'Release version (e.g., v1.0.1)'
         required: true
         default: 'v1.0.1'
+
+env:
+  VERSION_TAG: "v1.0.1"
 
 jobs:
   build:
@@ -41,13 +47,13 @@ jobs:
 
       - name: Zip Release File
         run: |
-          Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath ultranet-${{ github.event.inputs.version }}-windows.zip
+          Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath ultranet-${{ env.VERSION_TAG }}-windows.zip
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.event.inputs.version }}
-          name: UltraNet AI ${{ github.event.inputs.version }}
-          files: ultranet-${{ github.event.inputs.version }}-windows.zip
+          tag_name: ${{ env.VERSION_TAG }}
+          name: UltraNet AI ${{ env.VERSION_TAG }}
+          files: ultranet-${{ env.VERSION_TAG }}-windows.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
