@@ -9,10 +9,10 @@ on:
       version:
         description: 'Release version (e.g., v1.0.1)'
         required: true
-        default: 'v1.0.4'
+        default: 'v1.0.5'
 
 env:
-  VERSION_TAG: "v1.0.4"
+  VERSION_TAG: "v1.0.5"
 
 jobs:
   build:
@@ -53,6 +53,6 @@ jobs:
         with:
           tag_name: ${{ env.VERSION_TAG }}
           name: UltraNet AI ${{ env.VERSION_TAG }}
-          files: build\windows\installer\UltraNet_Setup.exe
+          files: build/windows/installer/UltraNet_Setup.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
