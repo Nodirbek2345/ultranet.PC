@@ -1004,8 +1004,6 @@ class _AboutPage extends StatelessWidget {
                 _aboutRow('Version', '1.0.0'),
                 const SizedBox(height: 12),
                 _aboutRow('Platform', 'Windows'),
-                const SizedBox(height: 12),
-                _aboutRow('Framework', 'Flutter + Rust'),
                 const SizedBox(height: 28),
                 const Divider(color: Colors.white12),
                 const SizedBox(height: 16),
@@ -1241,15 +1239,15 @@ class _UpdatesPageState extends State<_UpdatesPage> {
       } else {
         setState(() {
           _loading = false;
-          _latestVersion = _currentVersion; // Xatolik bo'lsa oxirgi versiyadasiz deb ko'rsatadi
-          _status = '';
+          _latestVersion = null;
+          _status = 'Yangilanish hali mavjud emas';
         });
       }
     } catch (e) {
       setState(() {
         _loading = false;
-        _latestVersion = _currentVersion;
-        _status = '';
+        _latestVersion = null;
+        _status = 'Yangilanish hali mavjud emas';
       });
     }
   }
@@ -1356,22 +1354,44 @@ class _UpdatesPageState extends State<_UpdatesPage> {
                       if (_loading)
                         const CircularProgressIndicator()
                       else if (_downloadProgress >= 0)
-                        SizedBox(
-                          width: 200,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              LinearProgressIndicator(
-                                value: _downloadProgress,
-                                backgroundColor: Colors.white10,
-                                valueColor: const AlwaysStoppedAnimation<Color>(Colors.greenAccent),
-                                minHeight: 8,
-                                borderRadius: BorderRadius.circular(4),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const Text('LOADING', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+                            const SizedBox(height: 8),
+                            Container(
+                              width: 250,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF1E293B),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: Colors.white24, width: 2),
                               ),
-                              const SizedBox(height: 6),
-                              Text('${(_downloadProgress * 100).toStringAsFixed(1)}%', style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold)),
-                            ],
-                          ),
+                              child: Stack(
+                                children: [
+                                  FractionallySizedBox(
+                                    widthFactor: _downloadProgress.clamp(0.0, 1.0),
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.greenAccent,
+                                        borderRadius: BorderRadius.circular(18),
+                                      ),
+                                    ),
+                                  ),
+                                  Align(
+                                    alignment: Alignment.centerRight,
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(right: 12.0),
+                                      child: Text(
+                                        '${(_downloadProgress * 100).toInt()}%',
+                                        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         )
                       else
                         ElevatedButton.icon(
