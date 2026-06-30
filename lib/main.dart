@@ -796,16 +796,25 @@ class _TraceroutePage extends StatefulWidget {
 class _TraceroutePageState extends State<_TraceroutePage> {
   TracerouteResult? _result;
   bool _loading = false;
+  final TextEditingController _ipController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(milliseconds: 500), _run);
+  }
+
+  @override
+  void dispose() {
+    _ipController.dispose();
+    super.dispose();
   }
 
   Future<void> _run() async {
+    final target = _ipController.text.trim();
+    if (target.isEmpty) return;
+    FocusScope.of(context).unfocus();
     setState(() { _loading = true; });
-    final res = await runTraceroute(target: "1.1.1.1");
+    final res = await runTraceroute(target: target);
     if (mounted) setState(() { _result = res; _loading = false; });
   }
 
@@ -820,11 +829,32 @@ class _TraceroutePageState extends State<_TraceroutePage> {
           const SizedBox(height: 8),
           Text(AppLocales.get('ai_subtitle'), style: TextStyle(color: Colors.white.withValues(alpha: 0.4))),
           const SizedBox(height: 20),
-          ElevatedButton.icon(
-            onPressed: _loading ? null : _run,
-            icon: _loading ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.route_rounded),
-            label: Text(_loading ? AppLocales.get('running') : AppLocales.get('start_traceroute')),
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF38BDF8), foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+          Row(
+            children: [
+              SizedBox(
+                width: 300,
+                child: TextField(
+                  controller: _ipController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    hintText: AppLocales.get('target_ip'),
+                    hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4)),
+                    filled: true,
+                    fillColor: Colors.white.withValues(alpha: 0.05),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  ),
+                  onSubmitted: (_) => _run(),
+                ),
+              ),
+              const SizedBox(width: 16),
+              ElevatedButton.icon(
+                onPressed: _loading ? null : _run,
+                icon: _loading ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.route_rounded),
+                label: Text(_loading ? AppLocales.get('running') : AppLocales.get('start_traceroute')),
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF38BDF8), foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+              ),
+            ],
           ),
           const SizedBox(height: 20),
           if (_result != null) ...[
