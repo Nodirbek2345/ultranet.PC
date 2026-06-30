@@ -13,9 +13,12 @@ import 'package:ultranet/src/rust/plugins/traceroute.dart';
 import 'package:ultranet/src/rust/plugins/speedtest.dart';
 import 'package:ultranet/locale.dart';
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:dio/dio.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:ultranet/config.dart';
 
 const String githubRepo = 'Nodirbek2345/ultranet.PC'; // GitHub repo manzili
@@ -1183,6 +1186,7 @@ class _UpdatesPageState extends State<_UpdatesPage> {
   String? _releaseNotes;
   String? _downloadUrl;
   String _status = '';
+  double _downloadProgress = -1;
   
   String _currentVersion = '...';
 
@@ -1212,34 +1216,87 @@ class _UpdatesPageState extends State<_UpdatesPage> {
         final data = jsonDecode(response.body);
         final tagName = data['tag_name'] as String;
         final body = data['body'] as String?;
-        final htmlUrl = data['html_url'] as String;
+        final assets = data['assets'] as List;
+        String? exeUrl;
+        
+        if (assets.isNotEmpty) {
+          final exeAsset = assets.cast<Map<String, dynamic>>().firstWhere(
+            (asset) => (asset['name'] as String).endsWith('.exe'),
+            orElse: () => <String, dynamic>{},
+          );
+          if (exeAsset.isNotEmpty) {
+            exeUrl = exeAsset['browser_download_url'] as String;
+          } else {
+            // Agar .exe topilmasa zip yuklanadi (fallback)
+            exeUrl = data['html_url'] as String; 
+          }
+        }
         
         setState(() {
           _latestVersion = tagName;
           _releaseNotes = body ?? '';
-          _downloadUrl = htmlUrl;
+          _downloadUrl = exeUrl ?? data['html_url'] as String;
           _loading = false;
         });
       } else {
         setState(() {
           _loading = false;
-          _status = 'Xatolik: Github sahifasi topilmadi (Status: ${response.statusCode})';
+          _latestVersion = _currentVersion; // Xatolik bo'lsa oxirgi versiyadasiz deb ko'rsatadi
+          _status = '';
         });
       }
     } catch (e) {
       setState(() {
         _loading = false;
-        _status = 'Tarmoq xatosi: $e';
+        _latestVersion = _currentVersion;
+        _status = '';
       });
     }
   }
 
-  Future<void> _launchUrl() async {
-    if (_downloadUrl != null) {
+  Future<void> _downloadAndInstall() async {
+    if (_downloadUrl == null) return;
+    
+    // Agar fayl linki to'g'ridan to'g'ri .exe bo'lmasa, uni brauzerda ochib qo'yaqolamiz
+    if (!_downloadUrl!.endsWith('.exe')) {
       final uri = Uri.parse(_downloadUrl!);
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       }
+      return;
+    }
+
+    setState(() {
+      _downloadProgress = 0.0;
+    });
+
+    try {
+      final tempDir = await getTemporaryDirectory();
+      final savePath = '${tempDir.path}\\UltraNet_Setup_$_latestVersion.exe';
+      
+      final dio = Dio();
+      await dio.download(
+        _downloadUrl!, 
+        savePath,
+        onReceiveProgress: (received, total) {
+          if (total != -1) {
+            setState(() {
+              _downloadProgress = received / total;
+            });
+          }
+        }
+      );
+      
+      // O'rnatuvchini ishga tushiramiz
+      Process.start(savePath, [], runInShell: true);
+      // O'zimizni yopamiz
+      exit(0);
+      
+    } catch (e) {
+      setState(() {
+        _downloadProgress = -1;
+        _status = "Yuklashda xatolik: $e";
+      });
     }
   }
 
@@ -1298,9 +1355,27 @@ class _UpdatesPageState extends State<_UpdatesPage> {
                       const Spacer(),
                       if (_loading)
                         const CircularProgressIndicator()
+                      else if (_downloadProgress >= 0)
+                        SizedBox(
+                          width: 200,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              LinearProgressIndicator(
+                                value: _downloadProgress,
+                                backgroundColor: Colors.white10,
+                                valueColor: const AlwaysStoppedAnimation<Color>(Colors.greenAccent),
+                                minHeight: 8,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              const SizedBox(height: 6),
+                              Text('${(_downloadProgress * 100).toStringAsFixed(1)}%', style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        )
                       else
                         ElevatedButton.icon(
-                          onPressed: hasUpdate ? _launchUrl : _checkForUpdates,
+                          onPressed: hasUpdate ? _downloadAndInstall : _checkForUpdates,
                           icon: Icon(hasUpdate ? Icons.download_rounded : Icons.refresh_rounded),
                           label: Text(hasUpdate ? AppLocales.get('download_update') : AppLocales.get('check_updates')),
                           style: ElevatedButton.styleFrom(
