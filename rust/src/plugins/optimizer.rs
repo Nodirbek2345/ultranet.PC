@@ -216,6 +216,45 @@ pub async fn pro_auto_optimize_cycle() {
         }
     }
 
+    // 4. Pro Local Network & Wi-Fi Optimization
+    // Check Wi-Fi signal
+    if let Some(wifi) = crate::plugins::wifi::get_wifi_stats() {
+        if wifi.signal_pct < 50 && wifi.signal_pct > 0 {
+            tracing::info!("Wi-Fi signal is critically low ({}%). Forcing rescan/reconnect...", wifi.signal_pct);
+            // Reconnect to current profile to maybe jump to a better AP or 5GHz band
+            if Command::new("netsh").args(["wlan", "disconnect"]).creation_flags(CREATE_NO_WINDOW).output().is_ok() {
+                tokio::time::sleep(Duration::from_millis(500)).await;
+                // Note: wifi.ssid might need escaping if it has spaces, but netsh usually handles name="ssid"
+                let ssid_arg = format!("name=\"{}\"", wifi.ssid);
+                let _ = Command::new("netsh").args(["wlan", "connect", &ssid_arg]).creation_flags(CREATE_NO_WINDOW).output();
+                actions_taken.push(format!("Wi-Fi Reconnected (Signal was {}%)", wifi.signal_pct));
+            }
+        }
+    }
+
+    // 5. Check local gateway and clear ARP / Renew IP if needed
+    let gw_ip = crate::plugins::gateway::get_default_gateway();
+    if !gw_ip.is_empty() {
+        let gw_ping = crate::plugins::ping::run_gateway_ping(&gw_ip, 2).await;
+        if let Some(p) = gw_ping {
+            if p.average_ms > 20.0 || p.packet_loss_pct > 0.0 {
+                tracing::info!("Gateway latency is high ({}ms). Clearing ARP cache...", p.average_ms);
+                // Clear ARP using PowerShell
+                let ps_cmd = "Remove-NetNeighbor -AddressFamily IPv4 -Confirm:$false";
+                let _ = Command::new("powershell").args(["-Command", ps_cmd]).creation_flags(CREATE_NO_WINDOW).output();
+                actions_taken.push("ARP Cache Cleared".to_string());
+                
+                if p.average_ms > 100.0 {
+                    // Extreme measure: Release / Renew
+                    tracing::info!("Gateway latency is critical ({}ms). Renewing DHCP IP...", p.average_ms);
+                    let _ = Command::new("ipconfig").arg("/release").creation_flags(CREATE_NO_WINDOW).output();
+                    let _ = Command::new("ipconfig").arg("/renew").creation_flags(CREATE_NO_WINDOW).output();
+                    actions_taken.push("DHCP IP Renewed".to_string());
+                }
+            }
+        }
+    }
+
     if !actions_taken.is_empty() {
         tracing::info!("Pro Auto-Optimize applied: {:?}", actions_taken);
     }
