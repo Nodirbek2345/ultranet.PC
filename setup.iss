@@ -1,7 +1,7 @@
 [Setup]
 ; Dastur nomlari va versiyasi
 AppName=UltraNet AI
-AppVersion=1.0.5
+AppVersion=1.0.6
 AppPublisher=Nodirbek
 DefaultDirName={autopf}\UltraNet AI
 DefaultGroupName=UltraNet AI
@@ -28,4 +28,4 @@ Name: "{autodesktop}\UltraNet AI"; Filename: "{app}\ultranet.exe"; Tasks: deskto
 
 [Run]
 ; O'rnatib bo'lgach dasturni ishga tushirish
-Filename: "{app}\ultranet.exe"; Description: "UltraNet AI dasturini ishga tushirish"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\ultranet.exe"; Description: "UltraNet AI dasturini ishga tushirish"; Flags: nowait postinstall

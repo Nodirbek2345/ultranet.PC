@@ -1315,9 +1315,13 @@ class _UpdatesPageState extends State<_UpdatesPage> {
         }
       );
       
-      // O'rnatuvchini ishga tushiramiz
-      Process.start(savePath, [], runInShell: true);
-      // O'zimizni yopamiz
+      // O'rnatuvchini orqa fonda jim (silent) ishga tushiramiz
+      await Process.start(
+        savePath, 
+        ['/VERYSILENT', '/SUPPRESSMSGBOXES', '/FORCECLOSEAPPLICATIONS'],
+        mode: ProcessStartMode.detached,
+      );
+      // Dasturni yopamiz (o'rnatuvchi davom ettirishi uchun)
       exit(0);
       
     } catch (e) {
