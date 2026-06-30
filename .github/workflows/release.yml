@@ -32,6 +32,10 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Create config.dart
+        shell: bash
+        run: echo "const String apiKey = '${{ secrets.API_KEY }}';" > lib/config.dart
+
       - name: Build Windows
         run: flutter build windows --release
 
