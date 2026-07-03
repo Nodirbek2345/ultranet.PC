@@ -1391,15 +1391,22 @@ class _UpdatesPageState extends State<_UpdatesPage> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            const Text('LOADING', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
-                            const SizedBox(height: 8),
+                            Text(
+                              '${(_downloadProgress * 100).toInt()}%',
+                              style: const TextStyle(
+                                color: Color(0xFFFF88FF),
+                                fontSize: 32,
+                                fontWeight: FontWeight.w800,
+                                shadows: [Shadow(color: Color(0x66FF88FF), blurRadius: 12)],
+                              ),
+                            ),
+                            const SizedBox(height: 12),
                             Container(
-                              width: 250,
-                              height: 40,
+                              width: 280,
+                              height: 28,
                               decoration: BoxDecoration(
-                                color: const Color(0xFF1E293B),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: Colors.white24, width: 2),
+                                color: const Color(0xFF3B254D),
+                                borderRadius: BorderRadius.circular(14),
                               ),
                               child: Stack(
                                 children: [
@@ -1407,18 +1414,11 @@ class _UpdatesPageState extends State<_UpdatesPage> {
                                     widthFactor: _downloadProgress.clamp(0.0, 1.0),
                                     child: Container(
                                       decoration: BoxDecoration(
-                                        color: Colors.greenAccent,
-                                        borderRadius: BorderRadius.circular(18),
-                                      ),
-                                    ),
-                                  ),
-                                  Align(
-                                    alignment: Alignment.centerRight,
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(right: 12.0),
-                                      child: Text(
-                                        '${(_downloadProgress * 100).toInt()}%',
-                                        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                                        color: const Color(0xFFFF88FF),
+                                        borderRadius: BorderRadius.circular(14),
+                                        boxShadow: const [
+                                          BoxShadow(color: Color(0x66FF88FF), blurRadius: 8)
+                                        ],
                                       ),
                                     ),
                                   ),

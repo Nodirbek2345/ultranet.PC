@@ -9,10 +9,10 @@ on:
       version:
         description: 'Release version (e.g., v1.0.1)'
         required: true
-        default: 'v1.0.8'
+        default: 'v1.0.9'
 
 env:
-  VERSION_TAG: "v1.0.8"
+  VERSION_TAG: "v1.0.9"
 
 jobs:
   build:
