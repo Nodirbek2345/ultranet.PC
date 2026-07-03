@@ -1,7 +1,7 @@
 [Setup]
 ; Dastur nomlari va versiyasi
 AppName=UltraNet AI
-AppVersion=1.0.7
+AppVersion=1.0.8
 AppPublisher=Nodirbek
 DefaultDirName={autopf}\UltraNet AI
 DefaultGroupName=UltraNet AI
