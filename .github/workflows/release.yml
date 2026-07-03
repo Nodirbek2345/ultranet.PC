@@ -9,10 +9,10 @@ on:
       version:
         description: 'Release version (e.g., v1.0.1)'
         required: true
-        default: 'v1.1.0'
+        default: 'v1.1.1'
 
 env:
-  VERSION_TAG: "v1.1.0"
+  VERSION_TAG: "v1.1.1"
 
 jobs:
   build:
@@ -40,9 +40,7 @@ jobs:
 
       - name: Create config.dart
         shell: bash
-        run: |
-          echo "const String apiKey = '${{ secrets.API_KEY }}';" > lib/config.dart
-          echo "const String githubToken = '${{ secrets.GITHUB_TOKEN }}';" >> lib/config.dart
+        run: echo "const String apiKey = '${{ secrets.API_KEY }}';" > lib/config.dart
 
       - name: Build Windows
         run: flutter build windows --release

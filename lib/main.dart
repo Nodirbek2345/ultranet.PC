@@ -1238,12 +1238,8 @@ class _UpdatesPageState extends State<_UpdatesPage> {
     });
 
     try {
-      final headers = githubToken.isNotEmpty
-          ? {'Authorization': 'token $githubToken'}
-          : <String, String>{};
       final response = await http.get(
         Uri.parse('https://api.github.com/repos/$githubRepo/releases/latest'),
-        headers: headers,
       );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -1271,17 +1267,11 @@ class _UpdatesPageState extends State<_UpdatesPage> {
           _downloadUrl = exeUrl;
           _loading = false;
         });
-      } else if (response.statusCode == 403) {
-        setState(() {
-          _loading = false;
-          _latestVersion = null;
-          _status = 'Juda ko\'p tekshirildi. Birozdan so\'ng (1 soatgacha) qayta urinib ko\'ring.';
-        });
       } else {
         setState(() {
           _loading = false;
           _latestVersion = null;
-          _status = 'Tarmoq xatosi (Kod: ${response.statusCode})';
+          _status = 'Yangilanishlarni tekshirib bo\'lmadi. Internet aloqasini tekshiring.';
         });
       }
     } catch (e) {
