@@ -1239,7 +1239,13 @@ class _UpdatesPageState extends State<_UpdatesPage> {
     });
 
     try {
-      final response = await http.get(Uri.parse('https://api.github.com/repos/$githubRepo/releases/latest'));
+      final headers = githubToken.isNotEmpty
+          ? {'Authorization': 'token $githubToken'}
+          : <String, String>{};
+      final response = await http.get(
+        Uri.parse('https://api.github.com/repos/$githubRepo/releases/latest'),
+        headers: headers,
+      );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final tagName = data['tag_name']?.toString() ?? '';
@@ -1255,9 +1261,7 @@ class _UpdatesPageState extends State<_UpdatesPage> {
             }
           }
           
-          if (exeUrl == null) {
-            exeUrl = data['html_url']?.toString(); 
-          }
+          exeUrl ??= data['html_url']?.toString();
         } else {
           exeUrl = data['html_url']?.toString();
         }
@@ -1267,6 +1271,12 @@ class _UpdatesPageState extends State<_UpdatesPage> {
           _releaseNotes = body;
           _downloadUrl = exeUrl;
           _loading = false;
+        });
+      } else if (response.statusCode == 403) {
+        setState(() {
+          _loading = false;
+          _latestVersion = null;
+          _status = 'Juda ko\'p tekshirildi. Birozdan so\'ng (1 soatgacha) qayta urinib ko\'ring.';
         });
       } else {
         setState(() {

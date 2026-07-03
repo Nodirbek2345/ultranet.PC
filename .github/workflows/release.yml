@@ -40,7 +40,9 @@ jobs:
 
       - name: Create config.dart
         shell: bash
-        run: echo "const String apiKey = '${{ secrets.API_KEY }}';" > lib/config.dart
+        run: |
+          echo "const String apiKey = '${{ secrets.API_KEY }}';" > lib/config.dart
+          echo "const String githubToken = '${{ secrets.GITHUB_TOKEN }}';" >> lib/config.dart
 
       - name: Build Windows
         run: flutter build windows --release
