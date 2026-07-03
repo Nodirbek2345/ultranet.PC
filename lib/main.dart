@@ -1242,42 +1242,44 @@ class _UpdatesPageState extends State<_UpdatesPage> {
       final response = await http.get(Uri.parse('https://api.github.com/repos/$githubRepo/releases/latest'));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final tagName = data['tag_name'] as String;
-        final body = data['body'] as String?;
-        final assets = data['assets'] as List;
+        final tagName = data['tag_name']?.toString() ?? '';
+        final body = data['body']?.toString() ?? '';
+        final assets = data['assets'] as List?;
         String? exeUrl;
         
-        if (assets.isNotEmpty) {
-          final exeAsset = assets.cast<Map<String, dynamic>>().firstWhere(
-            (asset) => (asset['name'] as String).endsWith('.exe'),
-            orElse: () => <String, dynamic>{},
-          );
-          if (exeAsset.isNotEmpty) {
-            exeUrl = exeAsset['browser_download_url'] as String;
-          } else {
-            // Agar .exe topilmasa zip yuklanadi (fallback)
-            exeUrl = data['html_url'] as String; 
+        if (assets != null && assets.isNotEmpty) {
+          for (var asset in assets) {
+            if (asset is Map && asset['name'] != null && asset['name'].toString().endsWith('.exe')) {
+              exeUrl = asset['browser_download_url']?.toString();
+              break;
+            }
           }
+          
+          if (exeUrl == null) {
+            exeUrl = data['html_url']?.toString(); 
+          }
+        } else {
+          exeUrl = data['html_url']?.toString();
         }
         
         setState(() {
           _latestVersion = tagName;
-          _releaseNotes = body ?? '';
-          _downloadUrl = exeUrl ?? data['html_url'] as String;
+          _releaseNotes = body;
+          _downloadUrl = exeUrl;
           _loading = false;
         });
       } else {
         setState(() {
           _loading = false;
           _latestVersion = null;
-          _status = 'Yangilanish hali mavjud emas';
+          _status = 'Tarmoq xatosi (Kod: ${response.statusCode})';
         });
       }
     } catch (e) {
       setState(() {
         _loading = false;
         _latestVersion = null;
-        _status = 'Yangilanish hali mavjud emas';
+        _status = 'Xatolik yuz berdi: $e';
       });
     }
   }
