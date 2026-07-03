@@ -944,7 +944,6 @@ class _BufferbloatPageState extends State<_BufferbloatPage> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(milliseconds: 500), _run);
   }
 
   Future<void> _run() async {
